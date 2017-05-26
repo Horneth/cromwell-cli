@@ -47,7 +47,7 @@ func submitWorkflow(c *cli.Context) (interface{}, error) {
 }
 
 func getStatus(c *cli.Context) (interface{}, error) {
-	var status cromwell_api.WorkflowStatus
+	var status gromwell.WorkflowStatus
 	if err := validateNbArgs(c.NArg(), []int {1}); err != nil {
 		cli.ShowCommandHelp(c, c.Command.Name)
 		return status, err
@@ -57,7 +57,7 @@ func getStatus(c *cli.Context) (interface{}, error) {
 }
 
 func getOutputs(c *cli.Context) (interface{}, error) {
-	var outputs cromwell_api.WorkflowOutputs
+	var outputs gromwell.WorkflowOutputs
 	if err := validateNbArgs(c.NArg(), []int {1}); err != nil {
 		cli.ShowCommandHelp(c, c.Command.Name)
 		return outputs, err
@@ -68,7 +68,7 @@ func getOutputs(c *cli.Context) (interface{}, error) {
 
 func getMetadata(c *cli.Context) (interface{}, error) {
 	fmt.Println(c.Args())
-	var metadata cromwell_api.WorkflowMetadata
+	var metadata gromwell.WorkflowMetadata
 	if err := validateNbArgs(c.NArg(), []int {1}); err != nil {
 		cli.ShowCommandHelp(c, c.Command.Name)
 		return metadata, err
@@ -84,7 +84,7 @@ func getMetadata(c *cli.Context) (interface{}, error) {
 }
 
 func abortWorkflow(c *cli.Context) (interface{}, error) {
-	var status cromwell_api.WorkflowStatus
+	var status gromwell.WorkflowStatus
 	if err := validateNbArgs(c.NArg(), []int {1}); err != nil {
 		cli.ShowCommandHelp(c, c.Command.Name)
 		return status, err

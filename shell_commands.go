@@ -23,7 +23,7 @@ func watchWorkflow(workflowId string, c *ishell.Context) {
 	
 	ticker := time.NewTicker(time.Second * 10)
 	
-	var currentStatus = cromwell_api.WorkflowStatus {
+	var currentStatus = gromwell.WorkflowStatus {
 		Id: workflowId,
 		Status: "Submitted",
 	}

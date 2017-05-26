@@ -12,7 +12,7 @@ import (
 // Cli App - global because accessed by the shell too
 var app *cli.App
 
-var cromwellClient cromwell_api.CromwellClient
+var cromwellClient gromwell.CromwellClient
 // Last workflow submitted - for convenience
 var last string
 
@@ -77,7 +77,7 @@ func main() {
 		cromwellHost := c.GlobalString("host")
 		cromwellServer, err := url.Parse(cromwellHost)
 		if (err != nil) { return err }
-		cromwellClient = cromwell_api.CromwellClient { CromwellUrl: cromwellServer }
+		cromwellClient = gromwell.CromwellClient { CromwellUrl: cromwellServer }
 		return nil
 	}
 
