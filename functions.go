@@ -1,7 +1,7 @@
 package main
 
 import (
-	"local/cromwell-api"
+	"github.com/horneth/cromwell-api"
 	"github.com/urfave/cli"
 	"errors"
 	"fmt"

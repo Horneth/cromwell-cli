@@ -5,7 +5,7 @@ import (
 	"time"
 	"fmt"
 	"log"
-	"local/cromwell-api"
+	"github.com/horneth/cromwell-api"
 )
 
 var shellCommands = []*ishell.Cmd{
