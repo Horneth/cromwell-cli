@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/abiosoft/ishell"
-	"github.com/horneth/cromwell-api"
+	"github.com/horneth/gromwell"
 	"github.com/urfave/cli"
 	"os"
 	"net/url"

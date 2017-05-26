@@ -1,20 +1,20 @@
 package main
 
 import (
-	"github.com/horneth/cromwell-api"
 	"github.com/urfave/cli"
 	"errors"
 	"fmt"
 	"strings"
 	"strconv"
 	"io/ioutil"
+	"github.com/horneth/gromwell"
 )
 
 func submitWorkflow(c *cli.Context) (interface{}, error) {
 	var wdlPath string
 	var workflowInputs string
 	var workflowOptions string
-	var status cromwell_api.WorkflowStatus
+	var status gromwell.WorkflowStatus
 	
 	if err := validateNbArgs(c.NArg(), []int {1, 2, 3}); err != nil {
 		cli.ShowCommandHelp(c, c.Command.Name)
@@ -31,7 +31,7 @@ func submitWorkflow(c *cli.Context) (interface{}, error) {
 		workflowOptions = c.Args()[2]
 	}
 
-	submitCommand := cromwell_api.SubmitCommand {
+	submitCommand := gromwell.SubmitCommand {
 		WdlSource: wdlPath,
 		WorkflowInputs: workflowInputs,
 		WorkflowOptions: workflowOptions,
