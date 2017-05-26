@@ -7,7 +7,7 @@ import (
 
 
 type WrongArgumentCount int
-type CromwellAction func (c *cli.Context) (interface{}, error)
+type CromwellAction func (c *cli.Context) (string, error)
 
 func (c WrongArgumentCount) Error() string {
 	return fmt.Sprintf("Wrong number of argument: %d", int(c))
@@ -20,19 +20,19 @@ var cliCommands = []cli.Command {
 		Name: "run",
 		Usage: "submit a workflow",
 		ArgsUsage: "wdlSource [workflowInputs] [workflowOptions]",
-		Action: cliAction(submitWorkflow),
+		Action: submitWorkflow,
 	},
 	cli.Command {
 		Name: "status",
 		Usage: "get the status of a workflow",
 		ArgsUsage: "workflowId",
-		Action: cliAction(getStatus),
+		Action: getStatus,
 	},
 	cli.Command {
 		Name: "outputs",
 		Usage: "get the outputs of a workflow",
 		ArgsUsage: "workflowId",
-		Action: cliAction(getOutputs),
+		Action: getOutputs,
 	},
 	cli.Command {
 		Name: "metadata",
@@ -44,28 +44,18 @@ var cliCommands = []cli.Command {
 				Usage: "write the metadata to `FILE`",
 			},
 		},
-		Action: cliAction(getMetadata),
+		Action: getMetadata,
 	},
 	cli.Command {
 		Name: "abort",
 		Usage: "abort a workflow",
 		ArgsUsage: "workflowId",
-		Action: cliAction(abortWorkflow),
+		Action: abortWorkflow,
 	},
 	cli.Command {
 		Name: "cromwell-version",
 		Usage: "return the version of the underlying cromwell server",
 		ArgsUsage: "",
-		Action: cliAction(cromwellVersion),
+		Action: cromwellVersion,
 	},
-}
-
-// Method to get a cliAction from a cromwellCommand 
-func cliAction(action CromwellAction) cli.ActionFunc {
-	return func (c *cli.Context) error {
-		result, err := action(c)
-		if (err != nil) { return cli.NewExitError(err, 1) }
-		if (result != nil) { fmt.Println(result) }
-		return nil
-	}
 }

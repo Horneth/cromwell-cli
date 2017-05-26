@@ -4,22 +4,15 @@ import (
 	"github.com/urfave/cli"
 	"errors"
 	"fmt"
-	"strings"
-	"strconv"
-	"io/ioutil"
 	"github.com/horneth/gromwell"
 )
 
-func submitWorkflow(c *cli.Context) (interface{}, error) {
+func submitWorkflow(c *cli.Context) error {
 	var wdlPath string
 	var workflowInputs string
 	var workflowOptions string
-	var status gromwell.WorkflowStatus
 	
-	if err := validateNbArgs(c.NArg(), []int {1, 2, 3}); err != nil {
-		cli.ShowCommandHelp(c, c.Command.Name)
-		return status, err
-	}
+	if err := validateNbArgs(c, []int {1, 2, 3}); err != nil { return cli.NewExitError(err, 1) }
 
 	wdlPath = c.Args().First()
 
@@ -43,96 +36,122 @@ func submitWorkflow(c *cli.Context) (interface{}, error) {
 		last = status.Id
 	}
 
-	return status, err
+	fmt.Println(status)
+
+	return nil
 }
 
-func getStatus(c *cli.Context) (interface{}, error) {
-	var status gromwell.WorkflowStatus
-	if err := validateNbArgs(c.NArg(), []int {1}); err != nil {
-		cli.ShowCommandHelp(c, c.Command.Name)
-		return status, err
-	}
-	status, err := cromwellClient.GetWorkflowStatus(enhancedWorkflowId(c.Args().First()))
-	return status, err
+func getStatus(c *cli.Context) error {
+	if err := validateOneArg(c); err != nil { return cli.NewExitError(err, 1) }
+	
+	id, err := enhancedWorkflowId(c.Args().First())
+	if (err != nil) { return cli.NewExitError(err, 1) }
+	
+	status, err := cromwellClient.GetWorkflowStatus(id)
+	if (err != nil) { return cli.NewExitError(err, 1) }
+	
+	fmt.Println(status.String())
+
+	return nil
 }
 
-func getOutputs(c *cli.Context) (interface{}, error) {
-	var outputs gromwell.WorkflowOutputs
-	if err := validateNbArgs(c.NArg(), []int {1}); err != nil {
-		cli.ShowCommandHelp(c, c.Command.Name)
-		return outputs, err
-	}
-	outputs, err := cromwellClient.GetWorkflowOutputs(enhancedWorkflowId(c.Args().First()))
-	return outputs, err
-}
+func getOutputs(c *cli.Context) error {
+	if err := validateOneArg(c); err != nil { return cli.NewExitError(err, 1) }
 
-func getMetadata(c *cli.Context) (interface{}, error) {
-	fmt.Println(c.Args())
-	var metadata gromwell.WorkflowMetadata
-	if err := validateNbArgs(c.NArg(), []int {1}); err != nil {
-		cli.ShowCommandHelp(c, c.Command.Name)
-		return metadata, err
-	}
-	metadata, err := cromwellClient.GetWorkflowMetadata(enhancedWorkflowId(c.Args().First()))
-	if (err != nil) { return metadata, err }
+	id, err := enhancedWorkflowId(c.Args().First())
+	if (err != nil) { return cli.NewExitError(err, 1) }
+	
+	outputs, err := cromwellClient.GetWorkflowOutputs(id)
+	if (err != nil) { return cli.NewExitError(err, 1) }
+	
 	if output := c.String("output"); output != "" {
-		err = ioutil.WriteFile(output, metadata.Metadata, 0644)
-		if (err == nil) { return fmt.Sprintf("Metadata written to %s ", output), err }
+		if err = outputs.ToFile(output); err != nil {
+			return cli.NewExitError(err, 1)
+		}
+		
+		fmt.Printf("Outputs written to %s\n", output)
+		return nil
 	}
+
+	fmt.Println(outputs.String())
+
+	return nil
+}
+
+func getMetadata(c *cli.Context) error {
+	// Validate nb args
+	if err := validateOneArg(c); err != nil { return cli.NewExitError(err, 1) }
+
+	id, err := enhancedWorkflowId(c.Args().First())
+	if (err != nil) { return cli.NewExitError(err, 1) }
 	
-	return metadata, err
+	metadata, err := cromwellClient.GetWorkflowMetadata(id)
+	if (err != nil) { return cli.NewExitError(err, 1) }
+	
+	if output := c.String("output"); output != "" {
+		if err = metadata.ToFile(output); err != nil {
+			return cli.NewExitError(err, 1)
+		}
+		
+		fmt.Printf("Metadata written to %s\n", output)
+		return nil
+	}
+
+	fmt.Println(metadata.String())
+
+	return nil
 }
 
-func abortWorkflow(c *cli.Context) (interface{}, error) {
-	var status gromwell.WorkflowStatus
-	if err := validateNbArgs(c.NArg(), []int {1}); err != nil {
-		cli.ShowCommandHelp(c, c.Command.Name)
-		return status, err
-	}
-	status, err := cromwellClient.AbortWorkflow(enhancedWorkflowId(c.Args().First()))
-	return status, err
+func abortWorkflow(c *cli.Context) error {
+	if err := validateOneArg(c); err != nil { return cli.NewExitError(err, 1) }
+
+	id, err := enhancedWorkflowId(c.Args().First())
+	if (err != nil) { return cli.NewExitError(err, 1) }
+	
+	status, err := cromwellClient.AbortWorkflow(id)
+	if (err != nil) { return cli.NewExitError(err, 1) }
+
+	fmt.Println(status.String())
+
+	return nil
 }
 
-func cromwellVersion(c *cli.Context) (interface{}, error) {
-	var version string
-	if err := validateNbArgs(c.NArg(), []int {0}); err != nil {
-		cli.ShowCommandHelp(c, c.Command.Name)
-		return version, err
-	}
+func cromwellVersion(c *cli.Context) error {
+	// Validate nb args
+	if err := validateNoArg(c); err != nil { return err }
+	
 	version, err := cromwellClient.Version()
-	return version, err
-}
 
-func enhancedWorkflowId(id string) string {
-	if (id == "last" && last != "") { return last }
-	return id
-}
-
-func validateNbArgs(nbArgs int, allowed []int) error {
-	for _, v := range allowed {
-		if (nbArgs == v) { return nil }
-	}
+	if (err != nil) { return cli.NewExitError(err, 1) }
 	
-	return errors.New(fmt.Sprintf("Invalid number of arguemnts: %d. Expecting one of %s", nbArgs, conjoin(allowed)))
+	fmt.Println(version)
+	
+	return nil
 }
 
-func conjoin(items []int) string {
-	if len(items) == 0 {
-		return ""
+func enhancedWorkflowId(id string) (string, error) {
+	if (id == "last") {
+		if (last != "") {
+			return last, nil
+		} else {
+			return "", errors.New("Cannot find last submitted workflow")
+		}
 	}
-	if len(items) == 1 {
-		return strconv.Itoa(items[0])
-	}
-	if len(items) == 2 { // "a and b" not "a, and b"
-		return strconv.Itoa(items[0]) + " " + "," + " " + strconv.Itoa(items[1])
-	}
+	return id, nil
+}
 
-	sep := ", "
-	pieces := []string{strconv.Itoa(items[0])}
-	for _, item := range items[1 : len(items)-1] {
-		pieces = append(pieces, sep, strconv.Itoa(item))
+func validateNbArgs(c *cli.Context, allowed []int) error {
+	for _, v := range allowed {
+		if (c.NArg() == v) { return nil }
 	}
-	pieces = append(pieces, sep, strconv.Itoa(items[len(items)-1]))
+	cli.ShowCommandHelp(c, c.Command.Name)
+	return errors.New(fmt.Sprintf("Invalid number of arguemnts: %d. Expecting one of %s", c.NArg(), conjoin(allowed)))
+}
 
-	return strings.Join(pieces, "")
+func validateOneArg(c *cli.Context) error {
+	return validateNbArgs(c, []int {1})
+}
+
+func validateNoArg(c *cli.Context) error {
+	return validateNbArgs(c, []int {0})
 }

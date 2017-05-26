@@ -19,7 +19,12 @@ var shellCommands = []*ishell.Cmd{
 }
 
 func watchWorkflow(workflowId string, c *ishell.Context) {
-	enhancedId := enhancedWorkflowId(workflowId)
+	enhancedId, err := enhancedWorkflowId(workflowId)
+
+	if (err != nil) {
+		c.Println("Cannot find last submitted workflow")
+		return
+	}
 	
 	ticker := time.NewTicker(time.Second * 10)
 	
